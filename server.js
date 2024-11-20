@@ -12,9 +12,14 @@ app.use(express.json());
 
 // Importa las rutas
 const productRoute = require('./routes/productRoute');
-const superuserRoute = require('./routes/superuserRoute'); // Importa la nueva ruta
+const superuserRoute = require('./routes/superuserRoute');
+const userRoute = require('./routes/userRoute');
+const tipoProductoRoute = require('./routes/tipoProductoRoute'); // Nueva ruta
+
 app.use('/api/productos', productRoute);
-app.use('/api/superusers', superuserRoute); // Nueva ruta para superuser
+app.use('/api/superusers', superuserRoute);
+app.use('/api/users', userRoute);
+app.use('/api/tipo_producto', tipoProductoRoute); // Ruta para tipo_producto
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
