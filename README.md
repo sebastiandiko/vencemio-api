@@ -35,6 +35,7 @@ npm install express firebase-admin
 
 ## **Endpoints Principales**
 Productos
+
     Obtener productos por categoría:
         *Método: GET
         *URL: /api/productos/byCategory/:categoryName
@@ -48,6 +49,7 @@ Productos
         *Ejemplo: http://localhost:3000/api/productos/byCodSuper/SupermaxMaipu359
 
 Superusuarios
+
     Obtener superusuario por ID:
         *Método: GET
         *URL: /api/superusers/:id
