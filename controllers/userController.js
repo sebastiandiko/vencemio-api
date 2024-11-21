@@ -27,3 +27,43 @@ exports.getUserById = async (req, res) => {
     res.status(500).send('Error al obtener el usuario: ' + error.message);
   }
 };
+
+// Registrar un nuevo usuario
+exports.registerUser = async (req, res) => {
+  try {
+    // Obtener los datos del usuario desde el body de la solicitud
+    const { nombre, apellido, email, password } = req.body;
+
+    // Validar los datos requeridos
+    if (!nombre || !apellido || !email || !password) {
+      return res.status(400).json({ message: 'Todos los campos requeridos deben estar completos.' });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({ message: 'La contraseña debe tener al menos 6 caracteres.' });
+    }
+
+    // Crear el usuario en Firebase Authentication
+    const userRecord = await admin.auth().createUser({
+      email,
+      password,
+      displayName: `${nombre} ${apellido}`,
+    });
+
+    // Almacenar información adicional en Firestore
+    const userData = {
+      uid: userRecord.uid,
+      nombre,
+      apellido,
+      email,
+      fecha_registro: new Date().toISOString(),
+    };
+
+    await db.collection('users').doc(userRecord.uid).set(userData);
+
+    // Responder con éxito
+    res.status(201).json({ message: 'Usuario registrado exitosamente.', uid: userRecord.uid });
+  } catch (error) {
+    res.status(500).json({ error: 'Error al registrar el usuario: ' + error.message });
+  }
+};

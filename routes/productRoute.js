@@ -9,5 +9,7 @@ router.get('/', productController.getAllProducts);
 router.get('/:id', productController.getProductById);
 router.get('/byCodSuper/:codSuper', productController.getProductsByCodSuper);
 router.get('/byCategory/:categoryName', productController.getProductsByCategory);
+router.post('/add', productController.addProduct);
+router.get('/filter/:codSuper/:codTipo', productController.getProductsBySuperAndCategory);
 
 module.exports = router;

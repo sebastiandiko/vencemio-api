@@ -8,4 +8,7 @@ router.get('/', userController.getAllUsers);
 // Ruta para obtener un usuario por ID
 router.get('/:id', userController.getUserById);
 
+// Ruta para registrar un nuevo usuario
+router.post('/register', userController.registerUser);
+
 module.exports = router;
