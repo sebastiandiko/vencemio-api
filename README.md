@@ -40,7 +40,7 @@ Productos
         *Método: GET
         *URL: /api/productos/byCategory/:categoryName
         *Descripción: Devuelve todos los productos que pertenecen a la categoría especificada.
-        *Ejemplo: http://localhost:3000/api/productos/byCategory/Lacteo
+        *Ejemplo: http://localhost:3000/api/productos/byCategory/Lacteos
 
     Obtener productos por superusuario:
         *Método: GET

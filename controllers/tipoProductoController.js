@@ -1,5 +1,5 @@
-const admin = require('firebase-admin');
-const db = admin.firestore();
+const { admin, db } = require('../utils/firebase');
+
 
 // Obtener todos los tipos de producto
 exports.getAllTipoProducto = async (req, res) => {
