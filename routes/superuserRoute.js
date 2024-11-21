@@ -8,6 +8,6 @@ router.get('/', superuserController.getAllSuperusers);
 // Ruta para obtener un superusuario por ID
 router.get('/:id', superuserController.getSuperuserById);
 
-router.post('/register', superuserController.registerSuperuser);
+router.post('/register', superuserController.registerSuper);
 
 module.exports = router;

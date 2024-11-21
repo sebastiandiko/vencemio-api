@@ -49,3 +49,53 @@ exports.login = async (req, res) => {
     res.status(500).json({ message: 'Error interno del servidor.' });
   }
 };
+
+exports.loginSuper = async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    // Validar que los campos no estén vacíos
+    if (!email || !password) {
+      return res.status(400).json({ message: 'El correo y la contraseña son obligatorios.' });
+    }
+
+    // Buscar el supermercado por correo
+    const superQuery = await db.collection('superuser').where('email', '==', email).get();
+
+    if (superQuery.empty) {
+      return res.status(404).json({ message: 'Supermercado no encontrado.' });
+    }
+
+    // Obtener el documento del superusuario
+    const superDoc = superQuery.docs[0];
+    const superData = superDoc.data();
+
+    // Verificar la contraseña
+    const isPasswordValid = await bcrypt.compare(password, superData.password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ message: 'Credenciales inválidas.' });
+    }
+
+    // Opcional: Generar un token JWT
+    const token = jwt.sign(
+      { id: superDoc.id, email: superData.email, cod_super: superData.cod_super },
+      process.env.JWT_SECRET || 'secret', // Define una clave secreta en .env
+      { expiresIn: '1h' }
+    );
+
+    // Responder con éxito
+    return res.status(200).json({
+      message: 'Inicio de sesión exitoso.',
+      token, // Enviar el token si lo necesitas para sesiones
+      super: {
+        id: superDoc.id,
+        email: superData.email,
+        cod_super: superData.cod_super,
+        cadena: superData.cadena,
+      },
+    });
+  } catch (error) {
+    console.error('Error al iniciar sesión del super:', error);
+    res.status(500).json({ message: 'Error interno del servidor.' });
+  }
+};

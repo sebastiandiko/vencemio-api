@@ -29,65 +29,54 @@ exports.getSuperuserById = async (req, res) => {
   }
 };
 
-// Registrar un nuevo superusuario
-exports.registerSuperuser = async (req, res) => {
+// Registrar un nuevo supermercado
+exports.registerSuper = async (req, res) => {
+  const {
+    cadena,
+    direccion,
+    ciudad,
+    provincia,
+    email,
+    telefono,
+    ubicacion,
+    estado = true,
+    fecha_registro,
+    password,
+  } = req.body;
+
   try {
-    // Obtener los datos del superusuario desde el body de la solicitud
-    const {
-      cadena,
-      ciudad,
-      provincia,
-      direccion,
-      cod_super,
-      password,
-      telefono = '', // Campo opcional
-      email = '', // Campo opcional
-      ubicacion // Este debe ser un objeto con latitud y longitud
-    } = req.body;
-
-    // Validar los campos requeridos
-    if (!cadena || !ciudad || !provincia || !direccion || !cod_super || !password || !ubicacion) {
-      return res.status(400).json({ message: 'Todos los campos requeridos deben estar completos.' });
-    }
-
-    if (password.length < 6) {
-      return res.status(400).json({ message: 'La contraseña debe tener al menos 6 caracteres.' });
-    }
-
-    if (!ubicacion.latitud || !ubicacion.longitud) {
-      return res.status(400).json({ message: 'Debe proporcionar la latitud y longitud en el campo ubicacion.' });
-    }
-
-    // Verificar si el superusuario ya existe en la base de datos
-    const existingSuperuser = await db.collection('superuser').where('cod_super', '==', cod_super).get();
-    if (!existingSuperuser.empty) {
-      return res.status(400).json({ message: 'El código del superusuario ya está registrado.' });
+    // Validar campos obligatorios
+    if (!cadena || !direccion || !ciudad || !provincia || !email || !ubicacion || !password) {
+      return res.status(400).json({ message: 'Todos los campos obligatorios deben estar completos.' });
     }
 
     // Cifrar la contraseña
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Crear los datos del superusuario
-    const superuserData = {
+    // Generar `cod_super`
+    const cod_super = `${cadena.replace(/\s+/g, '')}${direccion.replace(/\s+/g, '')}`;
+
+    // Crear el objeto del supermercado
+    const newSuper = {
       cadena,
+      direccion,
       ciudad,
       provincia,
-      direccion,
-      cod_super,
-      password: hashedPassword,
-      telefono,
       email,
-      estado: true,
-      fecha_registro: new Date().toISOString(),
-      ubicacion
+      telefono,
+      ubicacion,
+      estado,
+      fecha_registro: fecha_registro || new Date().toISOString(),
+      cod_super,
+      password: hashedPassword, // Guardar la contraseña cifrada
     };
 
-    // Agregar el nuevo superusuario a Firestore
-    const docRef = await db.collection('superuser').add(superuserData);
+    // Guardar en Firestore
+    const docRef = await db.collection('superuser').add(newSuper);
 
-    // Responder con éxito
-    res.status(201).json({ message: 'Superusuario registrado exitosamente.', id: docRef.id });
+    res.status(201).json({ message: 'Supermercado registrado exitosamente.', id: docRef.id });
   } catch (error) {
-    res.status(500).json({ error: 'Error al registrar el superusuario: ' + error.message });
+    console.error('Error al registrar supermercado:', error);
+    res.status(500).json({ message: 'Error interno del servidor.' });
   }
 };
