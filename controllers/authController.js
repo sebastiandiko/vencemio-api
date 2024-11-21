@@ -1,4 +1,4 @@
-const { admin, db } = require('../utils/firebase');
+const { db } = require('../utils/firebase'); // O tu inicialización de Firebase
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
@@ -7,12 +7,11 @@ exports.login = async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    // Validar que los campos estén completos
     if (!email || !password) {
       return res.status(400).json({ message: 'Email y contraseña son requeridos.' });
     }
 
-    // Buscar el usuario en Firestore
+    // Buscar usuario en Firestore
     const userSnapshot = await db.collection('users').where('email', '==', email).get();
 
     if (userSnapshot.empty) {
@@ -28,14 +27,13 @@ exports.login = async (req, res) => {
       return res.status(401).json({ message: 'Credenciales incorrectas.' });
     }
 
-    // Generar un token JWT
+    // Generar token
     const token = jwt.sign(
-      { uid: user.uid, email: user.email, nombre: user.nombre },
-      'SECRET_KEY', // Cambia esto por una clave secreta segura en tu entorno
-      { expiresIn: '1h' } // El token expirará en 1 hora
+      { uid: user.uid, email: user.email },
+      'SECRET_KEY', // Cambiar por una clave segura
+      { expiresIn: '1h' }
     );
 
-    // Responder con el token y la información del usuario
     res.status(200).json({
       message: 'Inicio de sesión exitoso.',
       token,

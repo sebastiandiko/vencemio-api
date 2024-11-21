@@ -1,4 +1,6 @@
 const { admin, db } = require('../utils/firebase');
+const bcrypt = require('bcrypt');
+const { v4: uuidv4 } = require('uuid'); // Para generar un UID si no lo manejas desde el frontend
 
 
 // Obtener todos los usuarios
@@ -30,40 +32,38 @@ exports.getUserById = async (req, res) => {
 
 // Registrar un nuevo usuario
 exports.registerUser = async (req, res) => {
-  try {
-    // Obtener los datos del usuario desde el body de la solicitud
-    const { nombre, apellido, email, password } = req.body;
+  const { nombre, apellido, email, password } = req.body;
 
-    // Validar los datos requeridos
+  try {
     if (!nombre || !apellido || !email || !password) {
       return res.status(400).json({ message: 'Todos los campos requeridos deben estar completos.' });
     }
 
-    if (password.length < 6) {
-      return res.status(400).json({ message: 'La contraseña debe tener al menos 6 caracteres.' });
+    // Verificar si el correo ya está registrado
+    const existingUser = await db.collection('users').where('email', '==', email).get();
+    if (!existingUser.empty) {
+      return res.status(400).json({ message: 'El correo ya está registrado.' });
     }
 
-    // Crear el usuario en Firebase Authentication
-    const userRecord = await admin.auth().createUser({
-      email,
-      password,
-      displayName: `${nombre} ${apellido}`,
-    });
+    // Cifrar la contraseña
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Almacenar información adicional en Firestore
-    const userData = {
-      uid: userRecord.uid,
+    // Crear los datos del usuario
+    const newUser = {
+      uid: uuidv4(), // Generar un UID único
       nombre,
       apellido,
       email,
+      password: hashedPassword, // Guardar la contraseña cifrada
       fecha_registro: new Date().toISOString(),
     };
 
-    await db.collection('users').doc(userRecord.uid).set(userData);
+    // Guardar en Firestore
+    await db.collection('users').add(newUser);
 
-    // Responder con éxito
-    res.status(201).json({ message: 'Usuario registrado exitosamente.', uid: userRecord.uid });
+    res.status(201).json({ message: 'Usuario registrado exitosamente.' });
   } catch (error) {
-    res.status(500).json({ error: 'Error al registrar el usuario: ' + error.message });
+    console.error('Error al registrar el usuario:', error);
+    res.status(500).json({ message: 'Error interno del servidor.' });
   }
 };
