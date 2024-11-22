@@ -219,3 +219,26 @@ exports.getProductsBySuperAndCategory = async (req, res) => {
     res.status(500).json({ error: 'Error al filtrar productos: ' + error.message });
   }
 };
+
+exports.updateProduct = async (req, res) => {
+  const { id } = req.params;
+  const productData = req.body;
+
+  try {
+    // Validar el formato de fecha
+    if (productData.fecha_vencimiento) {
+      productData.fecha_vencimiento = new Date(productData.fecha_vencimiento);
+      if (isNaN(productData.fecha_vencimiento)) {
+        return res.status(400).json({ message: 'Fecha de vencimiento inválida.' });
+      }
+    }
+
+    await db.collection('producto').doc(id).update(productData);
+
+    res.status(200).json({ message: 'Producto actualizado exitosamente.' });
+  } catch (error) {
+    console.error('Error al actualizar el producto:', error);
+    res.status(500).json({ message: 'Error interno del servidor.' });
+  }
+};
+

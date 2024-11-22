@@ -1,6 +1,9 @@
 const express = require('express');
 const cors = require('cors'); // Importa CORS para manejo de solicitudes entre dominios
 const { admin } = require('./utils/firebase'); // Importar Firebase desde utils/firebase.js
+const googleRoute = require('./routes/googleRoute');
+
+require('dotenv').config(); // Carga las variables de entorno desde el archivo .env
 
 const app = express();
 
@@ -18,14 +21,15 @@ const productRoute = require('./routes/productRoute');
 const superuserRoute = require('./routes/superuserRoute');
 const userRoute = require('./routes/userRoute');
 const tipoProductoRoute = require('./routes/tipoProductoRoute');
-const authRoute = require('./routes/authRoute'); // Asegúrate de incluir la ruta para autenticación
+const authRoute = require('./routes/authRoute');
 
 // Configura las rutas
 app.use('/api/productos', productRoute);
 app.use('/api/superusers', superuserRoute);
 app.use('/api/users', userRoute);
-app.use('/api/tipo_producto', tipoProductoRoute);
-app.use('/api/auth', authRoute); // Ruta para autenticación
+app.use('/api/tipos_product', tipoProductoRoute);
+app.use('/api/auth', authRoute);
+app.use('/api/google', googleRoute);
 
 // Inicia el servidor
 const PORT = process.env.PORT || 5000;

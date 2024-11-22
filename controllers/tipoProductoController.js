@@ -4,14 +4,16 @@ const { admin, db } = require('../utils/firebase');
 // Obtener todos los tipos de producto
 exports.getAllTipoProducto = async (req, res) => {
   try {
-    const tipoProductoSnapshot = await db.collection('tipo_producto').get();
-    const tipoProductos = [];
-    tipoProductoSnapshot.forEach(doc => {
-      tipoProductos.push({ id: doc.id, ...doc.data() });
+    const tipoProductoSnapshot = await db.collection("tipo_producto").get();
+    const tiposProducto = [];
+    tipoProductoSnapshot.forEach((doc) => {
+      tiposProducto.push({ id: doc.id, ...doc.data() });
     });
-    res.status(200).json(tipoProductos);
+
+    res.status(200).json(tiposProducto); // Devuelve los datos con "nombre"
   } catch (error) {
-    res.status(500).send('Error al obtener los tipos de producto: ' + error.message);
+    console.error("Error al obtener tipos de producto:", error);
+    res.status(500).json({ message: "Error al obtener los tipos de producto." });
   }
 };
 
