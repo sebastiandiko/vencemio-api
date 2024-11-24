@@ -80,3 +80,22 @@ exports.registerSuper = async (req, res) => {
     res.status(500).json({ message: 'Error interno del servidor.' });
   }
 };
+
+exports.getSuperuserLocations = async (req, res) => {
+  try {
+    const snapshot = await db.collection('superuser').get();
+    const locations = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(), // Incluye todos los campos del documento
+    }));
+
+    if (locations.length === 0) {
+      return res.status(404).send('Superusuario no encontrado'); // Esto puede ser el problema
+    }
+
+    res.status(200).json(locations);
+  } catch (error) {
+    console.error('Error al obtener las ubicaciones:', error);
+    res.status(500).json({ message: 'Error al obtener las ubicaciones.' });
+  }
+};
