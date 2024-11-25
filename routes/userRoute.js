@@ -2,13 +2,13 @@ const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/userController');
 
-// Ruta para obtener todos los usuarios
+// Rutas existentes
 router.get('/', userController.getAllUsers);
-
-// Ruta para obtener un usuario por ID
 router.get('/:id', userController.getUserById);
-
-// Ruta para registrar un nuevo usuario
 router.post('/register', userController.registerUser);
+
+// Nuevas rutas para manejar preferencias
+router.get('/:id/preferences', userController.getUserPreferences); // Obtener preferencias
+router.put('/:id/preferences', userController.updateUserPreferences); // Actualizar preferencias
 
 module.exports = router;
