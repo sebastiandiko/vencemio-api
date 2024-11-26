@@ -56,6 +56,7 @@ exports.registerUser = async (req, res) => {
       email,
       password: hashedPassword, // Guardar la contraseña cifrada
       fecha_registro: new Date().toISOString(),
+      preference: ["", "", ""]
     };
 
     // Guardar en Firestore
