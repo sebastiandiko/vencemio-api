@@ -112,3 +112,21 @@ exports.updateUserPreferences = async (req, res) => {
     res.status(500).json({ message: 'Error interno del servidor.' });
   }
 };
+
+// En el archivo userController.js
+exports.getUserPreferencesByUid = async (req, res) => {
+  try {
+    const { uid } = req.params;  // Recibimos el uid en lugar del userId
+    const doc = await db.collection('users').where('uid', '==', uid).get(); // Buscar por uid
+
+    if (doc.empty) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+
+    const userData = doc.docs[0].data(); // Suponiendo que sólo hay un usuario con ese uid
+    res.status(200).json({ preferences: userData.preference || [] });  // Devolver preferencias
+  } catch (error) {
+    console.error('Error al obtener las preferencias del usuario:', error);
+    res.status(500).json({ message: 'Error interno del servidor.' });
+  }
+};
