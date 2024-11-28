@@ -225,14 +225,16 @@ exports.updateProduct = async (req, res) => {
   const productData = req.body;
 
   try {
-    // Validar el formato de fecha
+    // Validar formato de fecha si es necesario
     if (productData.fecha_vencimiento) {
-      productData.fecha_vencimiento = new Date(productData.fecha_vencimiento);
-      if (isNaN(productData.fecha_vencimiento)) {
-        return res.status(400).json({ message: 'Fecha de vencimiento inválida.' });
+      // Asegúrate de que esté en el formato correcto (opcional)
+      const regexFecha = /^\d{4}-\d{2}-\d{2}$/; // YYYY-MM-DD
+      if (!regexFecha.test(productData.fecha_vencimiento)) {
+        return res.status(400).json({ message: 'Formato de fecha inválido. Debe ser YYYY-MM-DD.' });
       }
     }
 
+    // Actualizar el documento sin modificar el tipo de fecha
     await db.collection('producto').doc(id).update(productData);
 
     res.status(200).json({ message: 'Producto actualizado exitosamente.' });
