@@ -98,11 +98,9 @@ exports.getProductsByCategory = async (req, res) => {
     res.status(500).json({ error: 'Error al obtener los productos: ' + error.message });
   }
 };
-
 // Agregar un nuevo producto
 exports.addProduct = async (req, res) => {
   try {
-    // Obtener los datos del producto desde el body de la solicitud
     const {
       nombre,
       precio,
@@ -111,16 +109,18 @@ exports.addProduct = async (req, res) => {
       codigo_barra,
       fecha_vencimiento,
       stock,
-      imagen = '', // Campo opcional (por defecto vacío)
-      porcentaje_descuento = 0, // Campo opcional (por defecto 0)
-      estado = true // Por defecto, el producto está activo
+      imagen = '',
+      porcentaje_descuento = 0,
+      estado = true,
+      fecha_aviso_vencimiento
     } = req.body;
 
     // Validaciones
-    if (!nombre || !precio || !cod_super || !cod_tipo || !codigo_barra || !fecha_vencimiento || !stock) {
+    if (!nombre || !precio || !cod_super || !cod_tipo || !codigo_barra || !fecha_vencimiento || !stock || !fecha_aviso_vencimiento) {
       return res.status(400).json({ message: 'Todos los campos requeridos deben estar completos.' });
     }
 
+    // Validación de precio y stock
     if (typeof precio !== 'number' || precio <= 0) {
       return res.status(400).json({ message: 'El precio debe ser un número mayor a 0.' });
     }
@@ -129,23 +129,23 @@ exports.addProduct = async (req, res) => {
       return res.status(400).json({ message: 'El stock debe ser un número mayor a 0.' });
     }
 
-    if (typeof porcentaje_descuento !== 'number' || porcentaje_descuento < 0 || porcentaje_descuento > 100) {
-      return res.status(400).json({ message: 'El porcentaje de descuento debe ser un número entre 0 y 100.' });
-    }
-
-    const fechaActual = new Date();
     const fechaVencimiento = new Date(fecha_vencimiento);
     if (isNaN(fechaVencimiento)) {
       return res.status(400).json({ message: 'La fecha de vencimiento debe ser válida.' });
     }
+    const fechaActual = new Date();
     if (fechaVencimiento <= fechaActual) {
       return res.status(400).json({ message: 'La fecha de vencimiento debe ser una fecha futura.' });
     }
 
+    // Calcular la fecha de aviso de vencimiento (restar los días de anticipación)
+    const fechaAviso = new Date(fechaVencimiento);
+    fechaAviso.setDate(fechaAviso.getDate() - fecha_aviso_vencimiento); // Restamos los días de anticipación
+
     // Calcular el precio con descuento
     const precio_descuento = (precio * (100 - porcentaje_descuento)) / 100;
 
-    // Crear el producto en Firestore
+    // Crear el producto
     const newProduct = {
       nombre,
       precio,
@@ -158,18 +158,20 @@ exports.addProduct = async (req, res) => {
       porcentaje_descuento,
       precio_descuento,
       estado,
+      fecha_aviso_vencimiento: parseInt(fecha_aviso_vencimiento), // Guardamos los días de anticipación
+      fecha_avisado: fechaAviso.toISOString(), // Guardamos la fecha de aviso en formato ISO
       creadoEn: new Date().toISOString() // Fecha de creación
     };
 
-    // Agregar a la colección 'producto'
+    // Agregar el producto a la base de datos
     const docRef = await db.collection('producto').add(newProduct);
 
-    // Responder con éxito
     res.status(201).json({ message: 'Producto agregado exitosamente.', id: docRef.id });
   } catch (error) {
     res.status(500).json({ error: 'Error al agregar el producto: ' + error.message });
   }
 };
+
 
 exports.getProductsBySuperAndCategory = async (req, res) => {
   try {
@@ -227,20 +229,79 @@ exports.updateProduct = async (req, res) => {
   try {
     // Validar formato de fecha si es necesario
     if (productData.fecha_vencimiento) {
-      // Asegúrate de que esté en el formato correcto (opcional)
       const regexFecha = /^\d{4}-\d{2}-\d{2}$/; // YYYY-MM-DD
       if (!regexFecha.test(productData.fecha_vencimiento)) {
         return res.status(400).json({ message: 'Formato de fecha inválido. Debe ser YYYY-MM-DD.' });
       }
+
+      // Calcular la nueva fecha de aviso si es necesario
+      if (productData.fecha_aviso_vencimiento) {
+        const fechaVencimiento = new Date(productData.fecha_vencimiento);
+        const fechaAviso = new Date(fechaVencimiento);
+        fechaAviso.setDate(fechaAviso.getDate() - productData.fecha_aviso_vencimiento); // Restamos los días de anticipación
+
+        productData.fecha_avisado = fechaAviso.toISOString(); // Actualizamos la fecha de aviso
+      }
     }
 
-    // Actualizar el documento sin modificar el tipo de fecha
+    // Actualizar el documento del producto
     await db.collection('producto').doc(id).update(productData);
 
     res.status(200).json({ message: 'Producto actualizado exitosamente.' });
   } catch (error) {
     console.error('Error al actualizar el producto:', error);
     res.status(500).json({ message: 'Error interno del servidor.' });
+  }
+};
+
+
+
+exports.getProductsByAlert = async (req, res) => {
+  try {
+    const currentDate = new Date().toISOString(); // Obtener la fecha actual
+
+    // Buscar productos cuya fecha de aviso de vencimiento sea menor o igual a la fecha actual
+    const productsSnapshot = await db.collection('producto')
+      .where('fecha_avisado', '<=', currentDate) // Filtra productos cuyo aviso de vencimiento sea en el pasado o en el día actual
+      .get();
+
+    if (productsSnapshot.empty) {
+      return res.status(404).json({ message: 'No se encontraron productos para enviar alertas.' });
+    }
+
+    // Mapear los productos encontrados
+    const products = [];
+    productsSnapshot.forEach(doc => {
+      products.push({ id: doc.id, ...doc.data() });
+    });
+
+    res.status(200).json(products);
+  } catch (error) {
+    res.status(500).json({ error: 'Error al obtener productos para alertas: ' + error.message });
+  }
+};
+
+// Función para eliminar producto
+exports.deleteProduct = async (req, res) => {
+  const { id } = req.params; // Obtener el id del producto desde los parámetros
+
+  try {
+    // Verificar si el producto existe
+    const productRef = db.collection('producto').doc(id);
+    const doc = await productRef.get();
+
+    if (!doc.exists) {
+      return res.status(404).json({ message: 'Producto no encontrado' });
+    }
+
+    // Eliminar el producto de la base de datos
+    await productRef.delete();
+
+    // Responder con éxito
+    res.status(200).json({ message: 'Producto eliminado exitosamente.' });
+  } catch (error) {
+    console.error("Error al eliminar el producto:", error);
+    res.status(500).json({ message: 'Error al eliminar el producto.' });
   }
 };
 
