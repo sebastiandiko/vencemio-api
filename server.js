@@ -22,6 +22,7 @@ const superuserRoute = require('./routes/superuserRoute');
 const userRoute = require('./routes/userRoute');
 const tipoProductoRoute = require('./routes/tipoProductoRoute');
 const authRoute = require('./routes/authRoute');
+const favoriteRoutes = require('./routes/favoritesRoute'); // Importar las rutas de favoritos
 
 // Configura las rutas
 app.use('/api/productos', productRoute);
@@ -30,6 +31,7 @@ app.use('/api/users', userRoute);
 app.use('/api/tipos_product', tipoProductoRoute);
 app.use('/api/auth', authRoute);
 app.use('/api/google', googleRoute);
+app.use('/api/favorites', favoriteRoutes); // Rutas de favoritos
 
 // Inicia el servidor
 const PORT = process.env.PORT || 5000;
