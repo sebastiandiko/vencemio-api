@@ -1,4 +1,5 @@
 const { admin, db } = require('../utils/firebase');
+const { v4: uuidv4 } = require('uuid'); // Para generar un UUID único para cada producto
 
 // Obtener todos los productos
 exports.getAllProducts = async (req, res) => {
@@ -98,7 +99,8 @@ exports.getProductsByCategory = async (req, res) => {
     res.status(500).json({ error: 'Error al obtener los productos: ' + error.message });
   }
 };
-// Agregar un nuevo producto
+
+// Función para agregar un nuevo producto
 exports.addProduct = async (req, res) => {
   try {
     const {
@@ -115,7 +117,10 @@ exports.addProduct = async (req, res) => {
       fecha_aviso_vencimiento
     } = req.body;
 
-    // Validaciones
+    // Generamos un ID único para el producto
+    const productId = uuidv4();  // Utilizamos UUID para crear un ID único
+
+    // Validaciones de los datos del producto
     if (!nombre || !precio || !cod_super || !cod_tipo || !codigo_barra || !fecha_vencimiento || !stock || !fecha_aviso_vencimiento) {
       return res.status(400).json({ message: 'Todos los campos requeridos deben estar completos.' });
     }
@@ -145,8 +150,9 @@ exports.addProduct = async (req, res) => {
     // Calcular el precio con descuento
     const precio_descuento = (precio * (100 - porcentaje_descuento)) / 100;
 
-    // Crear el producto
+    // Crear el producto con un ID único
     const newProduct = {
+      id: productId,  // Asignamos el ID único al producto
       nombre,
       precio,
       cod_super,
@@ -171,6 +177,7 @@ exports.addProduct = async (req, res) => {
     res.status(500).json({ error: 'Error al agregar el producto: ' + error.message });
   }
 };
+
 
 
 exports.getProductsBySuperAndCategory = async (req, res) => {
