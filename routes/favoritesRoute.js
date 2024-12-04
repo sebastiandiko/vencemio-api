@@ -9,6 +9,6 @@ router.post('/add', addFavorite);
 router.post('/remove', removeFavorite);
 
 // Ruta para obtener todos los productos favoritos de un usuario
-router.get('/:userId', getFavorites);
+router.get('/:userUid', getFavorites);
 
 module.exports = router;
