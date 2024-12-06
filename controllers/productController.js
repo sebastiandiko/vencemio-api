@@ -117,9 +117,6 @@ exports.addProduct = async (req, res) => {
       fecha_aviso_vencimiento
     } = req.body;
 
-    // Generamos un ID único para el producto
-    const productId = uuidv4();  // Utilizamos UUID para crear un ID único
-
     // Validaciones de los datos del producto
     if (!nombre || !precio || !cod_super || !cod_tipo || !codigo_barra || !fecha_vencimiento || !stock || !fecha_aviso_vencimiento) {
       return res.status(400).json({ message: 'Todos los campos requeridos deben estar completos.' });
@@ -133,7 +130,7 @@ exports.addProduct = async (req, res) => {
     if (typeof stock !== 'number' || stock <= 0) {
       return res.status(400).json({ message: 'El stock debe ser un número mayor a 0.' });
     }
-
+    
     const fechaVencimiento = new Date(fecha_vencimiento);
     if (isNaN(fechaVencimiento)) {
       return res.status(400).json({ message: 'La fecha de vencimiento debe ser válida.' });
@@ -152,7 +149,6 @@ exports.addProduct = async (req, res) => {
 
     // Crear el producto con un ID único
     const newProduct = {
-      id: productId,  // Asignamos el ID único al producto
       nombre,
       precio,
       cod_super,
@@ -288,21 +284,23 @@ exports.getProductsByAlert = async (req, res) => {
   }
 };
 
-// Función para eliminar producto
 exports.deleteProduct = async (req, res) => {
-  const { id } = req.params; // Obtener el id del producto desde los parámetros
+  const { id } = req.params;  // Obtener el id del producto desde los parámetros
 
   try {
-    // Verificar si el producto existe
-    const productRef = db.collection('producto').doc(id);
-    const doc = await productRef.get();
+    // Buscar el producto en la colección "producto" usando el campo 'id' dentro del documento del producto
+    const productRef = db.collection('producto').where('id', '==', id);  // Usamos el campo 'id' en lugar de 'doc.id'
+    const productSnapshot = await productRef.get();
 
-    if (!doc.exists) {
+    if (productSnapshot.empty) {
       return res.status(404).json({ message: 'Producto no encontrado' });
     }
 
-    // Eliminar el producto de la base de datos
-    await productRef.delete();
+    // Obtenemos el primer documento que coincide con el 'id'
+    const productDoc = productSnapshot.docs[0];
+
+    // Eliminar el producto de la base de datos usando el 'doc.id' de Firestore
+    await productDoc.ref.delete();
 
     // Responder con éxito
     res.status(200).json({ message: 'Producto eliminado exitosamente.' });
