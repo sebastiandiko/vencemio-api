@@ -25,6 +25,7 @@ const tipoProductoRoute = require('./routes/tipoProductoRoute');
 const authRoute = require('./routes/authRoute');
 const favoriteRoutes = require('./routes/favoritesRoute'); // Importar las rutas de favoritos
 const notificationRoutes = require('./routes/notificationRoute'); // Importa las rutas de notificaciones
+const ventasRoute = require('./routes/ventasRoute');
 
 // Configura las rutas
 app.use('/api/productos', productRoute);
@@ -35,6 +36,7 @@ app.use('/api/auth', authRoute);
 app.use('/api/google', googleRoute);
 app.use('/api/favorites', favoriteRoutes); // Rutas de favoritos
 app.use('/api/notificaciones', notificationRoutes); // Registra las rutas bajo el prefijo /api/notificaciones
+app.use('/api/ventas', ventasRoute);
 
 // Inicia el servidor
 const PORT = process.env.PORT || 5000;
