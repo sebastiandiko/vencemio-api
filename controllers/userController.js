@@ -130,3 +130,22 @@ exports.getUserPreferencesByUid = async (req, res) => {
     res.status(500).json({ message: 'Error interno del servidor.' });
   }
 };
+
+exports.getUserByUid = async (req, res) => {
+  try {
+    const { uid } = req.params; // Recibimos el UID como parámetro
+    const snapshot = await db.collection('users').where('uid', '==', uid).get();
+
+    if (snapshot.empty) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+
+    // Supongamos que el UID es único, por lo que sólo habrá un documento
+    const user = snapshot.docs[0].data();
+
+    res.status(200).json({ id: snapshot.docs[0].id, ...user }); // Devolver los datos del usuario
+  } catch (error) {
+    console.error('Error al obtener el usuario por UID:', error);
+    res.status(500).json({ message: 'Error al obtener el usuario', error: error.message });
+  }
+};

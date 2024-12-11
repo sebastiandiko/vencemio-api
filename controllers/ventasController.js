@@ -80,3 +80,42 @@ exports.createOrder = async (req, res) => {
       .json({ message: 'Error al crear la orden de compra', error: error.message });
   }
 };
+
+exports.getPurchaseHistory = async (req, res) => {
+  try {
+    const { uid } = req.params; // Obtener el UID del usuario de los parámetros
+    const snapshot = await db
+      .collection("ventas")
+      .where("user_id", "==", uid) // Filtrar por UID
+      .orderBy("fecha", "desc") // Ordenar por fecha descendente
+      .get();
+
+    if (snapshot.empty) {
+      return res.status(404).json({ message: "No se encontraron compras para este usuario." });
+    }
+
+    const purchases = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    res.status(200).json(purchases);
+  } catch (error) {
+    console.error("Error al obtener el historial de compras:", error);
+    res.status(500).json({ message: "Error al obtener el historial de compras.", error: error.message });
+  }
+};
+
+exports.getRecentPurchases = async (req, res) => {
+  try {
+    const { uid } = req.params; // Obtener el UID del usuario
+    const snapshot = await db
+      .collection("ventas")
+      .where("user_id", "==", uid) // Filtrar por UID
+      .orderBy("fecha", "desc") // Ordenar por fecha descendente
+      .limit(3) // Limitar a las últimas 3 compras
+      .get();
+
+    const purchases = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    res.status(200).json(purchases);
+  } catch (error) {
+    console.error("Error al obtener las compras recientes:", error);
+    res.status(500).json({ message: "Error al obtener las compras recientes.", error: error.message });
+  }
+};

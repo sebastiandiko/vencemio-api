@@ -10,5 +10,6 @@ router.get('/:id', superuserController.getSuperuserById);
 router.get('/locations', superuserController.getSuperuserLocations);
 
 router.post('/register', superuserController.registerSuper);
+router.get('/cod_super/:cod_super', superuserController.getSuperuserByCodSuper);
 
 module.exports = router;

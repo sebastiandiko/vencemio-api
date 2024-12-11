@@ -99,3 +99,23 @@ exports.getSuperuserLocations = async (req, res) => {
     res.status(500).json({ message: 'Error al obtener las ubicaciones.' });
   }
 };
+
+// Obtener un supermercado por su cod_super
+exports.getSuperuserByCodSuper = async (req, res) => {
+  try {
+    const codSuper = req.params.cod_super;
+    const snapshot = await db.collection('superuser').where('cod_super', '==', codSuper).get();
+
+    if (snapshot.empty) {
+      return res.status(404).json({ message: 'Supermercado no encontrado' });
+    }
+
+    // Supongamos que el código `cod_super` es único y obtenemos solo un resultado
+    const superuser = snapshot.docs[0].data();
+
+    res.status(200).json(superuser);
+  } catch (error) {
+    console.error('Error al obtener el supermercado:', error);
+    res.status(500).json({ message: 'Error al obtener el supermercado', error: error.message });
+  }
+};

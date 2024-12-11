@@ -11,5 +11,6 @@ router.post('/register', userController.registerUser);
 router.get('/:id/preferences', userController.getUserPreferences); // Obtener preferencias
 router.put('/:id/preferences', userController.updateUserPreferences); // Actualizar preferencias
 router.get('/preferences/:uid', userController.getUserPreferencesByUid); // Obtener preferencias por uid
+router.get('/uid/:uid', userController.getUserByUid);
 
 module.exports = router;
