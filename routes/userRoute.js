@@ -12,5 +12,6 @@ router.get('/:id/preferences', userController.getUserPreferences); // Obtener pr
 router.put('/:id/preferences', userController.updateUserPreferences); // Actualizar preferencias
 router.get('/preferences/:uid', userController.getUserPreferencesByUid); // Obtener preferencias por uid
 router.get('/uid/:uid', userController.getUserByUid);
+router.put('/preferences/uid/:uid', userController.updateUserPreferencesByUid);
 
 module.exports = router;

@@ -131,6 +131,34 @@ exports.getUserPreferencesByUid = async (req, res) => {
   }
 };
 
+// Actualizar preferencias usando UID
+exports.updateUserPreferencesByUid = async (req, res) => {
+  const { uid } = req.params; // Recibir UID como parámetro
+  const { preferences } = req.body; // Nuevas preferencias
+
+  try {
+    if (!Array.isArray(preferences)) {
+      return res.status(400).json({ message: 'Las preferencias deben ser un arreglo.' });
+    }
+
+    // Buscar el usuario por UID
+    const userSnapshot = await db.collection('users').where('uid', '==', uid).get();
+    if (userSnapshot.empty) {
+      return res.status(404).json({ message: 'Usuario no encontrado.' });
+    }
+
+    const userDoc = userSnapshot.docs[0].ref; // Referencia al documento
+    await userDoc.update({ preference: preferences }); // Actualizar preferencias
+
+    res.status(200).json({ message: 'Preferencias actualizadas exitosamente.' });
+  } catch (error) {
+    console.error('Error al actualizar preferencias:', error);
+    res.status(500).json({ message: 'Error interno del servidor.' });
+  }
+};
+
+
+
 exports.getUserByUid = async (req, res) => {
   try {
     const { uid } = req.params; // Recibimos el UID como parámetro
