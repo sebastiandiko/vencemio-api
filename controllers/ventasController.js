@@ -133,3 +133,20 @@ exports.getRecentPurchases = async (req, res) => {
     res.status(500).json({ message: "Error al obtener las compras recientes.", error: error.message });
   }
 };
+
+// Función para obtener todas las ventas
+exports.getAllSales = async (req, res) => {
+  try {
+    const snapshot = await db.collection("ventas").orderBy("fecha", "desc").get();
+
+    if (snapshot.empty) {
+      return res.status(404).json({ message: "No se encontraron ventas." });
+    }
+
+    const sales = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    res.status(200).json(sales);
+  } catch (error) {
+    console.error("Error al obtener todas las ventas:", error);
+    res.status(500).json({ message: "Error al obtener todas las ventas.", error: error.message });
+  }
+};
